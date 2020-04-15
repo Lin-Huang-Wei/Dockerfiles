@@ -36,4 +36,5 @@ RUN apt-get clean && \
 
 EXPOSE 22
 VOLUME [ "/work/ansible" ]
+WORKDIR /work/ansible
 
