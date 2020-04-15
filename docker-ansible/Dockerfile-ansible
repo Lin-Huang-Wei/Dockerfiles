@@ -1,0 +1,39 @@
+FROM ubuntu:18.04
+
+# Set locales
+RUN apt-get -y update && apt-get install --fix-missing && apt-get install -y locales && \
+    sed 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' -i /etc/locale.gen && \
+    DEBIAN_FRONTEND=noninteractive locale-gen
+ENV LANG en_US.UTF-8  
+ENV LANGUAGE en_US.UTF-8
+ENV LC_ALL en_US.UTF-8 
+
+# Set TimeZone
+ENV TZ=Asia/Taipei
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata && \
+    ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+# Install Base Tools
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y software-properties-common wget curl vim git tig tree dnsutils python-pip python3-pip
+
+# Upgrade pip
+RUN pip install --upgrade pip
+
+# Install Ansible Requirement Software
+RUN apt-get install -y sshpass openssh-client
+
+# Install Ansible
+ARG buildtime_ANSIBLE_VERSION=2.8.2
+ENV ANSIBLE_VERSION=${buildtime_ANSIBLE_VERSION}
+RUN pip install ansible==${buildtime_ANSIBLE_VERSION}
+
+# Create Ansible Directory
+RUN mkdir -p /work/ansible
+
+# Clean 
+RUN apt-get clean && \
+    rm -rf /var/lib/apt/lists/*  /tmp/*
+
+EXPOSE 22
+VOLUME [ "/work/ansible" ]
+
