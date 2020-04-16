@@ -22,10 +22,10 @@ build: ## Build ansible docker image from Dockerfile-ansible, defaults ANSIBLE_V
 run: ## Start runing ansible container, when you exit container, container will be delete, defaults ANSIBLE_VERSION=2.8.10
 ifeq ($(ANSIBLE_VERSION),$(ANSIBLE_VERSION))
 	@printf "\033[33m===========%-2sStart running Ansible Container - ansible version: $(ANSIBLE_VERSION)%-2s============\033[0m\n"
-	@docker run --rm -v "$(shell pwd)/ansible:/work/ansible" -it daniel/ansible:$(ANSIBLE_VERSION) bash
+	@docker run --name ansible -d -p "10022:22" -v "$(shell pwd)/ansible:/work/ansible" -it daniel/ansible:$(ANSIBLE_VERSION) bash
 else ifeq ($(ANSIBLE_VERSION), $(ANSIBLE_LATEST))
 	@printf "\033[33m============%-2sStart running Ansible Container - ansible version: $(ANSIBLE_LATEST)%-2s============\033[0m\n"
-	@docker run --rm -v "$(shell pwd)/ansible:/work/ansible" -it daniel/ansible bash
+	@docker run -d -p "10022:22" -v "$(shell pwd)/ansible:/work/ansible" -it daniel/ansible bash
 endif 
 
 .PHONY: tag
@@ -46,6 +46,11 @@ show_run: ## Show container status
 show_images: ## Show container images
 	@printf "\033[33m===================================%-2sShow container images%-2s====================================\033[0m\n"
 	@docker images
+
+.PHONY: clean
+clean: ## Force delete running containers
+	@printf "\033[33m================================%-2sClean all running container%-2s=================================\033[0m\n"
+	@docker rm -f "`docker ps -qa`"
 
 .PHONY: help
 help:
