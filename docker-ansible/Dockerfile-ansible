@@ -14,7 +14,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata && \
     ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # Install Base Tools
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y software-properties-common wget curl vim git tig tree dnsutils python-pip python3-pip
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y software-properties-common net-tools wget curl vim git tig tree dnsutils python-pip python3-pip
 
 # Upgrade pip
 RUN pip install --upgrade pip
@@ -25,7 +25,8 @@ RUN apt-get install -y sshpass openssh-client
 # Install Ansible
 ARG buildtime_ANSIBLE_VERSION=2.8.2
 ENV ANSIBLE_VERSION=${buildtime_ANSIBLE_VERSION}
-RUN pip install ansible==${buildtime_ANSIBLE_VERSION}
+RUN pip install ansible==${buildtime_ANSIBLE_VERSION} && \
+    pip install ansible-lint
 
 # Create Ansible Directory
 RUN mkdir -p /work/ansible
