@@ -17,6 +17,8 @@ RESET                  := $(shell tput -Txterm sgr0)
 MKFILE_PATH            := $(abspath $(lastword $(MAKEFILE_LIST)))
 ROOT_DIR               := $(shell dirname $(MKFILE_PATH))
 WORK_DIR               := ${shell PWD}
+CONTAINER_IMAGES_PURGE := $(shell docker images -q -f dangling=true)
+CONTAINER_CLEAN        := $(shell docker ps -qa -f status=status=exited)
 
 # Set defaults AWSCLIv2_VERSION, if variable have be setting, will be replaced.
 ifndef AWSCLIv2_VERSION
@@ -104,7 +106,8 @@ run: ## Start running Terraform container, when you exit container, container wi
 
 .PHONY: clean 
 clean: ## Garbage disposal
-	@docker images | grep 'none' | awk '{print $3}' | xargs -I % docker rmi -f %
+	@docker rmi -f $(CONTAINER_IMAGES_PURGE)
+	@docker rm -f $(CONTAINER_CLEAN)
 
 .PHONY: help
 help:
