@@ -149,7 +149,7 @@ RUN curl -LO https://go.dev/dl/go${GOLANG_VERSION}.linux-amd64.tar.gz \
 
 ENV AWS_CONFIG_FILE=/work/.aws/config
 ENV AWS_SHARED_CREDENTIALS_FILE=/work/.aws/credentials
-RUN mkdir -p /work/.aws /work/terraform /work/ansible /work/tekton 
+RUN mkdir -p /work/.aws /work/terraform /work/ansible /work/tekton /root/.terraform.d/plugins
 
 ##############################
 # Clean apt-get cache
