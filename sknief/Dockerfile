@@ -135,6 +135,15 @@ RUN curl -LO https://github.com/tektoncd/cli/releases/download/v${buildtime_TEKT
     && rm -rf /tkn_${buildtime_TEKTON_VERSION}_Linux_x86_64.tar.gz
 
 ##############################
+# Install Go
+##############################
+
+ARG buildtime_GOLANG_VERSION='1.20.3'
+ENV GOLANG_VERSION=${buildtime_GOLANG_VERSION}
+RUN curl -LO https://go.dev/dl/go${GOLANG_VERSION}.linux-amd64.tar.gz \
+    && tar -C /usr/local -xzf go${GOLANG_VERSION}.linux-amd64.tar.gz
+
+##############################
 # Create Work Directory
 ##############################
 
@@ -148,6 +157,8 @@ RUN mkdir -p /work/.aws /work/terraform /work/ansible /work/tekton
 
 RUN apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/*
+
+ENV PATH=/usr/local/go/bin:${PATH}
 
 EXPOSE 22
 VOLUME ["/work/"]

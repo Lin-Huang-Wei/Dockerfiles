@@ -48,6 +48,11 @@ ifndef TEKTON_VERSION
 	override TEKTON_VERSION=0.30.1
 endif
 
+# Set defaults ANSIBLE_VERSION, if variable have be setting, will be replaced.
+ifndef GOLANG_VERSION
+	override GOLANG_VERSION=1.20.3
+endif
+
 # Set DockerHub Account Name
 ifndef DOCKERHUB_ACCOUNT
 	override DOCKERHUB_ACCOUNT=daniel
@@ -60,7 +65,7 @@ show: ## Show current running container
 	@docker container ls
 
 .PHONY: build
-build: ## Build Terraform docker images from Dockerfile, defaults AWSCLIv2_VERSION=2.11.6, TF_VERSION=1.4.6, ANSIBLE_VERSION=2.14.5, KUBECTL_VERSION=1.27.1, HELM_VERSION=3.11.3, TEKTON_VERSION=0.30.1
+build: ## Build sknief docker images from Dockerfile, defaults AWSCLIv2_VERSION=2.11.6, TF_VERSION=1.4.6, ANSIBLE_VERSION=2.14.5, KUBECTL_VERSION=1.27.1, HELM_VERSION=3.11.3, TEKTON_VERSION=0.30.1, GOLANG_VERSION=1.20.3
 	@printf "${YELLOW}########################################################################################################################${RESET}\n"
 	@printf "${YELLOW}%-2sStart${RESET} ${CYAN}Swiss Knief${RESET} ${YELLOW}Container Images${RESET}\n"
 	@printf "${YELLOW}%-4sAWSCLIv2_VERSION=${RESET}${MAGENTA}${AWSCLIv2_VERSION}${RESET}\n"
@@ -69,6 +74,7 @@ build: ## Build Terraform docker images from Dockerfile, defaults AWSCLIv2_VERSI
 	@printf "${YELLOW}%-4sKUBECTL_VERSION=${RESET}${MAGENTA}${KUBECTL_VERSION}${RESET}\n"
 	@printf "${YELLOW}%-4sHELM_VERSION=${RESET}${MAGENTA}${HELM_VERSION}${RESET}\n"
 	@printf "${YELLOW}%-4sTEKTON_VERSION=${RESET}${MAGENTA}${TEKTON_VERSION}${RESET}\n"
+	@printf "${YELLOW}%-4sGOLANG_VERSION=${RESET}${MAGENTA}${GOLANG_VERSION}${RESET}\n"
 	@printf "${YELLOW}########################################################################################################################${RESET}\n"
 	@docker build \
 		--build-arg buildtime_AWSCLIv2_VERSION=$(AWSCLIv2_VERSION) \
@@ -80,7 +86,7 @@ build: ## Build Terraform docker images from Dockerfile, defaults AWSCLIv2_VERSI
 		-t $(DOCKERHUB_ACCOUNT)/sknief -f Dockerfile .
 
 .PHONY: run
-run: ## Start running Terraform container, when you exit container, container will be delete, defaults AWSCLIv2_VERSION=2.11.6, TF_VERSION=1.4.6, ANSIBLE_VERSION=2.14.5, KUBECTL_VERSION=1.27.1, HELM_VERSION=3.11.3, TEKTON_VERSION=0.30.1
+run: ## Start running Terraform container, when you exit container, container will be delete, defaults AWSCLIv2_VERSION=2.11.6, TF_VERSION=1.4.6, ANSIBLE_VERSION=2.14.5, KUBECTL_VERSION=1.27.1, HELM_VERSION=3.11.3, TEKTON_VERSION=0.30.1, GOLANG_VERSION=1.20.3
 	@printf "${YELLOW}########################################################################################################################${RESET}\n"
 	@printf "${YELLOW}%-2sStart${RESET} ${CYAN}Swiss Knief${RESET} ${YELLOW}Container Images${RESET}\n"
 	@printf "${YELLOW}%-4sAWSCLIv2_VERSION=${RESET}${MAGENTA}${AWSCLIv2_VERSION}${RESET}\n"
@@ -89,11 +95,16 @@ run: ## Start running Terraform container, when you exit container, container wi
 	@printf "${YELLOW}%-4sKUBECTL_VERSION=${RESET}${MAGENTA}${KUBECTL_VERSION}${RESET}\n"
 	@printf "${YELLOW}%-4sHELM_VERSION=${RESET}${MAGENTA}${HELM_VERSION}${RESET}\n"
 	@printf "${YELLOW}%-4sTEKTON_VERSION=${RESET}${MAGENTA}${TEKTON_VERSION}${RESET}\n"
+	@printf "${YELLOW}%-4sGOLANG_VERSION=${RESET}${MAGENTA}${GOLANG_VERSION}${RESET}\n"
 	@printf "${YELLOW}########################################################################################################################${RESET}\n"
 	@docker run --name sknief -d  \
 		--volume "${shell PWD}/../ansible:/work/ansible" \
 		--volume "${shell PWD}/../terraform:/work/terraform" \
 		-it $(DOCKERHUB_ACCOUNT)/sknief bash
+
+.PHONY: clean 
+clean: ## Garbage disposal
+	@docker images | grep 'none' | awk '{print $3}' | xargs -I % docker rmi -f %
 
 .PHONY: help
 help:
