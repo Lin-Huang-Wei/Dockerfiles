@@ -18,7 +18,7 @@ MKFILE_PATH            := $(abspath $(lastword $(MAKEFILE_LIST)))
 ROOT_DIR               := $(shell dirname $(MKFILE_PATH))
 WORK_DIR               := ${shell PWD}
 CONTAINER_IMAGES_PURGE := $(shell docker images -q -f dangling=true)
-CONTAINER_CLEAN        := $(shell docker ps -qa -f status=status=exited)
+CONTAINER_CLEAN        := $(shell docker ps -qa -f status=exited)
 
 # Set defaults AWSCLIv2_VERSION, if variable have be setting, will be replaced.
 ifndef AWSCLIv2_VERSION
