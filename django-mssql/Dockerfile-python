@@ -1,0 +1,223 @@
+FROM --platform=linux/amd64 ubuntu:22.04
+
+# Update: 2023-08-29
+LABEL maintainer="Daniel Lin"
+
+##############################
+# Set locales
+##############################
+
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends locales \
+    && sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen \
+    && dpkg-reconfigure --frontend=noninteractive locales \
+    && update-locale LANG=en_US.UTF-8
+
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US.UTF-8
+ENV LC_ALL en_US.UTF-8
+
+##############################
+# Set TimeZone
+##############################
+
+ENV TZ=Asia/Taipei
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends tzdata \
+    && ln -snf /usr/share/zoneinfo/${TZ} /etc/localtime \
+    && echo ${TZ} > /etc/timezone
+
+##############################
+# Install Base Tools
+##############################
+
+# Package 'python-pip' has no installation candidate on Ubuntu 20.04, use 'python3-pip' to replace it.
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    apt-transport-https  \
+    bash \
+    curl \
+    dirmngr \
+    dnsutils \
+    git \
+    gettext-base \
+    gnupg2 \
+    gpg-agent \
+    iputils-ping \
+    jq \
+    netcat \
+    net-tools \
+    python3-pip \
+    rsync \
+    software-properties-common \
+    telnet \
+    tig \
+    tree \
+    unzip \
+    vim \
+    wget \
+    zip
+
+##############################
+# Install Python Requirement Tools
+##############################
+
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    build-essential \
+    zlib1g-dev \
+    libncurses5-dev \
+    libgdbm-dev \
+    libnss3-dev \
+    libssl-dev \
+    libreadline-dev \
+    libffi-dev \
+    libsqlite3-dev \
+    wget \
+    libbz2-dev
+
+##############################
+# Install Runtime Dependencies
+##############################
+
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+	libbluetooth-dev \
+	tk-dev \
+	uuid-dev
+
+# ##############################
+# # Install Python From Source
+# ##############################
+
+ENV GPG_KEY A035C8C19219BA821ECEA86B64E628F8D684696D
+
+ARG buildtime_PYTHON_VERSION='3.11.5'
+ENV PYTHON_VERSION=${buildtime_PYTHON_VERSION}
+RUN set -eux; \
+    \
+    GNUPGHOME="$(mktemp -d)"; export GNUPGHOME; \
+    cd "${GNUPGHOME}"; \
+    curl -L "https://www.python.org/ftp/python/${buildtime_PYTHON_VERSION}/Python-${buildtime_PYTHON_VERSION}.tgz" -o "${GNUPGHOME}/Python-${buildtime_PYTHON_VERSION}.tgz"; \
+    curl -L "https://www.python.org/ftp/python/${buildtime_PYTHON_VERSION}/Python-${buildtime_PYTHON_VERSION}.tgz.asc" -o "${GNUPGHOME}/Python-${buildtime_PYTHON_VERSION}.tgz.asc"; \
+    gpg --batch --keyserver hkps://keys.openpgp.org --recv-keys "${GPG_KEY}"; \
+    gpg --batch --verify "${GNUPGHOME}/Python-${buildtime_PYTHON_VERSION}.tgz.asc" "${GNUPGHOME}/Python-${buildtime_PYTHON_VERSION}.tgz"; \
+    gpgconf --kill all; \
+    tar -zxvf "${GNUPGHOME}/Python-${buildtime_PYTHON_VERSION}.tgz"; \
+    cd "Python-${buildtime_PYTHON_VERSION}"; \
+    nproc="$(nproc)"; \
+    gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)"; \
+    EXTRA_CFLAGS="$(dpkg-buildflags --get CFLAGS)"; \
+    LDFLAGS="$(dpkg-buildflags --get LDFLAGS)"; \
+    ./configure \
+      --build="${gnuArch}" \
+      --enable-loadable-sqlite-extensions \
+      --enable-optimizations \
+      --enable-option-checking=fatal \
+      --enable-shared \
+      --with-system-expat \
+      --without-ensurepip \
+    ; \
+    make -j "${nproc}" \
+      "EXTRA_CFLAGS=${EXTRA_CFLAGS:-}" \
+      "LDFLAGS=${LDFLAGS:-}" \
+    ; \
+    rm python; \
+    make -j "${nproc}" \
+      "EXTRA_CFLAGS=${EXTRA_CFLAGS:-}" \
+      "LDFLAGS=${LDFLAGS:--Wl},-rpath='\$\$ORIGIN/../lib'" \
+        "PROFILE_TASK=${PROFILE_TASK:-}" \
+    python \
+    ; \
+    make install; \
+    bin="$(readlink -ve /usr/local/bin/python3)"; \
+    dir="$(dirname "${bin}")"; \
+    mkdir -p "/usr/share/gdb/auto-load${dir}"; \
+    cp -vL Tools/gdb/libpython.py "/usr/share/gdb/auto-load/${bin}-gdb.py"; \
+    \
+    cd /; \
+    \
+    rm -rf "${GNUPGHOME}"; unset GNUPGHOME; \
+    \
+    find /usr/local -depth \
+    \( \
+      \( -type d -a \( -name test -o -name tests -o -name idle_test \) \) \
+      -o \( -type f -a \( -name '*.pyc' -o -name '*.pyo' -o -name 'libpython*.a' \) \) \
+      -o \( -type f -a -name 'wininst-*.exe' \) \
+    \) -exec rm -rf '{}' + \
+    ; \
+    \
+    ldconfig; \
+    python3 --version
+ARG buildtime_PYTHON_PIP_VERSION='23.2.1'
+ENV PYTHON_PIP_VERSION=${buildtime_PYTHON_PIP_VERSION}
+# https://github.com/docker-library/python/issues/365
+ARG buildtime_PYTHON_SETUPTOOLS_VERSION='65.5.1'
+ENV PYTHON_SETUPTOOLS_VERSION=${buildtime_PYTHON_SETUPTOOLS_VERSION}
+# https://github.com/pypa/get-pip
+ENV PYTHON_GET_PIP_URL https://github.com/pypa/get-pip/raw/9af82b715db434abb94a0a6f3569f43e72157346/public/get-pip.py
+ENV PYTHON_GET_PIP_SHA256 45a2bb8bf2bb5eff16fdd00faef6f29731831c7c59bd9fc2bf1f3bed511ff1fe
+
+RUN set -eux; \
+	\
+	wget -O get-pip.py "${PYTHON_GET_PIP_URL}"; \
+	echo "${PYTHON_GET_PIP_SHA256} *get-pip.py" | sha256sum -c -; \
+	\
+	export PYTHONDONTWRITEBYTECODE=1; \
+	\
+	python3 get-pip.py \
+		--disable-pip-version-check \
+		--no-cache-dir \
+		--no-compile \
+		"pip==${PYTHON_PIP_VERSION}" \
+		"setuptools==${PYTHON_SETUPTOOLS_VERSION}" \
+	; \
+	rm -f get-pip.py; \
+	\
+	pip --version
+
+##############################
+# Install Python SQL Driver - pyodbc and pymssql
+# https://learn.microsoft.com/zh-tw/sql/connect/python/pyodbc/step-1-configure-development-environment-for-pyodbc-python-development?view=sql-server-ver16&tabs=linux
+##############################
+
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    unixodbc; \
+    pip install pyodbc pymssql
+
+##############################
+# Install Microsoft ODBC Driver for SQL Server
+# https://learn.microsoft.com/zh-tw/sql/connect/odbc/linux-mac/installing-the-microsoft-odbc-driver-for-sql-server?view=sql-server-ver16&tabs=alpine18-install%2Calpine17-install%2Cdebian8-install%2Credhat7-13-install%2Crhel7-offline
+##############################
+
+ENV ACCEPT_EULA=Y
+
+ARG buildtime_MSODBCSQL='msodbcsql18'
+ENV MSODBCSQL=${buildtime_MSODBCSQL}
+
+ARG buildtime_MSODBCSQL_TOOLS='mssql-tools18'
+ENV MSODBCSQL_TOOLS=${buildtime_MSODBCSQL_TOOLS}
+
+RUN curl https://packages.microsoft.com/keys/microsoft.asc | tee /etc/apt/trusted.gpg.d/microsoft.asc; \
+    curl https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/prod.list | tee /etc/apt/sources.list.d/mssql-release.list; \
+    apt-get -y update; \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    unixodbc-dev \
+    ${MSODBCSQL} \
+    ${MSODBCSQL_TOOLS}
+
+##############################
+# Install Django
+# Reference:
+# https://blog.devgenius.io/django-docker-setup-tutorial-4c3e5f8d6def
+##############################
+
+# disables an automatic check for pip updates each time
+ENV PIP_DISABLE_PIP_VERSION_CHECK 1
+# means Python will not try to write .pyc files
+ENV PYTHONDONTWRITEBYTECODE 1
+# ensures our console output is not buffered by Docker
+ENV PYTHONUNBUFFERED 1
+
+COPY ./requirements.txt .
+RUN pip install -r requirements.txt
+
+ENV PATH /opt/mssql-tools18/bin:${PATH}
+EXPOSE 8000
+CMD ["python3"]

@@ -1,0 +1,78 @@
+FROM mcr.microsoft.com/mssql/server:2022-latest
+
+USER root
+
+# Update: 2023-08-29
+LABEL maintainer="Daniel Lin"
+
+##############################
+# Set locales
+##############################
+
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends locales \
+    && sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen \
+    && dpkg-reconfigure --frontend=noninteractive locales \
+    && update-locale LANG=en_US.UTF-8
+
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US.UTF-8
+ENV LC_ALL en_US.UTF-8
+
+##############################
+# Set TimeZone
+##############################
+
+ENV TZ=Asia/Taipei
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends tzdata \
+    && ln -snf /usr/share/zoneinfo/${TZ} /etc/localtime \
+    && echo ${TZ} > /etc/timezone
+
+##############################
+# Install Base Tools
+##############################
+
+# Package 'python-pip' has no installation candidate on Ubuntu 20.04, use 'python3-pip' to replace it.
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    apt-transport-https  \
+    bash \
+    curl \
+    dirmngr \
+    dnsutils \
+    git \
+    gettext-base \
+    gnupg2 \
+    gpg-agent \
+    iputils-ping \
+    jq \
+    netcat \
+    net-tools \
+    rsync \
+    software-properties-common \
+    telnet \
+    tig \
+    tree \
+    unzip \
+    vim \
+    wget \
+    zip
+
+RUN mkdir -p /work/scripts
+WORKDIR /work/scripts
+
+COPY entrypoint.sh setup.sh /work/scripts/
+RUN chown -R 10001:0 /work
+
+USER 10001
+
+ARG DB_NAME=${DB_NAME}
+ENV DB_NAME=${DB_NAME:-Django}
+
+ARG DB_ACCOUNT
+ENV DB_ACCOUNT=${DB_ACCOUNT:-django}
+
+ARG DB_PASSWD=${DB_PASSWD}
+ENV DB_PASSWD=${DB_PASSWD:-1qaz@WSX3edcRFV}
+
+ENV PATH /opt/mssql-tools/bin:${PATH}
+EXPOSE 1433

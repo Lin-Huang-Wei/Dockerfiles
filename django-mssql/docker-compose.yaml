@@ -1,0 +1,47 @@
+version: "3.8"
+services:
+  mssql:
+    image: <DOCKER HUB ACCOUNT>/mssql
+    build:
+      context: .
+      dockerfile: ./Dockerfile-mssql
+    container_name: mssql
+    ports:
+      - "1433:1433"
+    volumes:
+      - "$PWD/mssql/data:/var/opt/mssql/data"
+      - "$PWD/mssql/log:/var/opt/mssql/log"
+    working_dir: /work/scripts
+    # entrypoint: /work/scripts/entrypoint.sh
+    environment:
+      ACCEPT_EULA: Y
+      MSSQL_SA_PASSWORD: '<MSSQL_SA_PASSWORD>'
+      MSSQL_DATA_DIR: /var/opt/mssql/data
+      TZ: 'Asia/Taiwan'
+    deploy:
+      resources:
+        limits:
+          memory: 4096M
+  web:
+    image: <DOCKER HUB ACCOUNT>/python:3.11.5
+    build:
+      context: .
+      args:
+        buildtime_MSODBCSQL: msodbcsql18
+        buildtime_MSODBCSQL_TOOLS: mssql-tools18
+      dockerfile: ./Dockerfile-python
+    container_name: django
+    command:
+      - /bin/sh
+      - -c
+      - |
+        django-admin startproject mysite
+        python3 mysite/manage.py migrate
+        python3 mysite/manage.py runserver 0:8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - "$PWD/projects:/projects"
+    working_dir: /projects
+    depends_on:
+      - mssql
