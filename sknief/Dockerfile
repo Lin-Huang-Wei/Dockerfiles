@@ -1,13 +1,13 @@
 From --platform=linux/amd64 ubuntu:22.04
 
-# Update: 2023-04-30
+# Update: 2023-10-02
 LABEL maintainer="Daniel Lin"
 
 ##############################
 # Set locales
 ##############################
 
-RUN apt-get update \
+RUN apt-get update -y \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends locales \
     && sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen \
     && dpkg-reconfigure --frontend=noninteractive locales \
@@ -31,8 +31,10 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends tz
 ##############################
 
 # Package 'python-pip' has no installation candidate on Ubuntu 20.04, use 'python3-pip' to replace it.
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+RUN apt-get update -y  \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     bash \
+    bash-completion \
     curl \
     dnsutils \
     git \
@@ -56,6 +58,13 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y groff less
 
 ##############################
+# Install Azure CLI Requirement Packages
+##############################
+
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y ca-certificates curl apt-transport-https lsb-release gnupg
+
+
+##############################
 # Upgrade pip
 ##############################
 
@@ -76,8 +85,24 @@ ENV AWSCLIv2_VERSION=${buildtime_AWSCLIv2_VERSION}
 RUN curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-${buildtime_AWSCLIv2_VERSION}.zip" -o "awscliv2.zip" \
     && unzip awscliv2.zip \
     && ./aws/install \
+    && echo "# AWS CLI autocompletion" >> /root/.bashrc \
     && echo "complete -C '/usr/local/bin/aws_completer' aws" >> /root/.bashrc \
+    && echo "" >> /root/.bashrc \
     && rm -rf /awscliv2.zip
+
+##############################
+# Install Azure Cli
+##############################
+
+RUN mkdir -p /etc/apt/keyrings \
+    && curl -sLS https://packages.microsoft.com/keys/microsoft.asc | \
+    gpg --dearmor | tee /etc/apt/keyrings/microsoft.gpg > /dev/null \
+    && chmod go+r /etc/apt/keyrings/microsoft.gpg \
+    && AZ_REPO=$(lsb_release -cs) \
+    && echo "deb [arch=`dpkg --print-architecture` signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/azure-cli/ $AZ_REPO main" |  \
+    tee /etc/apt/sources.list.d/azure-cli.list \
+    && apt-get update -y  \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y azure-cli
 
 ##############################
 # Install Terraform
@@ -89,7 +114,9 @@ RUN curl -s "https://releases.hashicorp.com/terraform/${buildtime_TF_VERSION}/te
     && unzip terraform_${buildtime_TF_VERSION}_linux_amd64.zip \
     && mv terraform /usr/local/bin/ \
     # Reference: https://discuss.hashicorp.com/t/terraform-autocompletion-not-working-on-macos-with-default-zsh-shell/10701/3
+    && echo "# Terraform autocompletion" >> /root/.bashrc  \
     && echo "complete -o nospace -C '/usr/local/bin/terraform' terraform" >> /root/.bashrc \
+    && echo "" >> /root/.bashrc \
     && rm -rf /terraform_${buildtime_TF_VERSION}_linux_amd64.zip
 
 ##############################
@@ -109,7 +136,13 @@ ARG buildtime_KUBECTL_VERSION='1.27.1'
 ENV KUBECTL_VERSION=${buildtime_KUBECTL_VERSION}
 RUN curl -LO "https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl" \
     && mv /kubectl /usr/local/bin/ \
-    && chmod +x /usr/local/bin/kubectl
+    && chmod +x /usr/local/bin/kubectl \
+    && echo "# Kubectl auto-completion and aliases" >> /root/.bashrc \
+    && echo "source <(kubectl completion bash)" >> /root/.bashrc \
+    && echo "alias k=kubectl" >> /root/.bashrc >> /root/.bashrc \
+    && echo "complete -F __start_kubectl k" >> /root/.bashrc \
+    && echo ". /usr/share/bash-completion/bash_completion" >> /root/.bashrc \
+    && echo "" >> /root/.bashrc
 
 ##############################
 # Install Helm
@@ -142,6 +175,19 @@ ARG buildtime_GOLANG_VERSION='1.20.3'
 ENV GOLANG_VERSION=${buildtime_GOLANG_VERSION}
 RUN curl -LO https://go.dev/dl/go${GOLANG_VERSION}.linux-amd64.tar.gz \
     && tar -C /usr/local -xzf go${GOLANG_VERSION}.linux-amd64.tar.gz
+
+
+##############################
+# Install K9S
+##############################
+
+ARG buildtime_K9S_VERSION='0.27.4'
+ENV K9S_VERSION=${buildtime_K9S_VERSION}
+
+RUN curl -LO https://github.com/derailed/k9s/releases/download/v${K9S_VERSION}/k9s_Linux_amd64.tar.gz \
+    &&  tar -zxvf k9s_Linux_amd64.tar.gz -C /usr/local/bin k9s \
+    && chmod +x /usr/local/bin/k9s \
+    && rm -rf k9s_Linux_amd64.tar.gz
 
 ##############################
 # Create Work Directory
