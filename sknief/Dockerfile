@@ -1,6 +1,6 @@
 From --platform=linux/amd64 ubuntu:22.04
 
-# Update: 2023-10-02
+# Update: 2023-10-04
 LABEL maintainer="Daniel Lin"
 
 ##############################
@@ -189,7 +189,6 @@ ENV GOLANG_VERSION=${buildtime_GOLANG_VERSION}
 RUN curl -LO https://go.dev/dl/go${GOLANG_VERSION}.linux-amd64.tar.gz \
     && tar -C /usr/local -xzf go${GOLANG_VERSION}.linux-amd64.tar.gz
 
-
 ##############################
 # Install K9S
 ##############################
@@ -201,6 +200,18 @@ RUN curl -LO https://github.com/derailed/k9s/releases/download/v${K9S_VERSION}/k
     && tar -zxvf k9s_Linux_amd64.tar.gz -C /usr/local/bin k9s \
     && chmod +x /usr/local/bin/k9s \
     && rm -rf k9s_Linux_amd64.tar.gz
+
+##############################
+# Install Neovim
+##############################
+
+ARG buildtime_NEOVIM_VERSION='0.9.2'
+ENV NEOVIM_VERSION=${buildtime_NEOVIM_VERSION}
+
+RUN curl -LO https://github.com/neovim/neovim/releases/download/v${NEOVIM_VERSION}/nvim-linux64.tar.gz \
+    && tar -zxvf nvim-linux64.tar.gz -C /opt \
+    && ln -s /opt/nvim-linux64/bin/nvim /usr/local/bin/vim \
+    && rm -rf nvim-linux64.tar.gz
 
 ##############################
 # Create Work Directory

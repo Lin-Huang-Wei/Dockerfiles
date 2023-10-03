@@ -1,5 +1,5 @@
 # Maintainer: Daniel Lin
-# Update: 2023-04-30
+# Update: 2023-10-04
 
 SHELL := /bin/bash
 
@@ -60,9 +60,14 @@ ifndef GOLANG_VERSION
 	override GOLANG_VERSION=1.21.1
 endif
 
-# Set defaults ANSIBLE_VERSION, if variable have be setting, will be replaced.
+# Set defaults K9S_VERSION, if variable have be setting, will be replaced.
 ifndef K9S_VERSION
 	override K9S_VERSION=0.27.4
+endif
+
+# Set defaults NEOVIM_VERSION, if variable have be setting, will be replaced.
+ifndef NEOVIM_VERSION
+	override NEOVIM_VERSION=0.9.2
 endif
 
 # Set DockerHub Account Name
@@ -89,6 +94,7 @@ build: ## Build sknief docker images from Dockerfile, defaults AWSCLIv2_VERSION=
 	@printf "${YELLOW}%-4sTEKTON_VERSION=${RESET}${MAGENTA}${TEKTON_VERSION}${RESET}\n"
 	@printf "${YELLOW}%-4sGOLANG_VERSION=${RESET}${MAGENTA}${GOLANG_VERSION}${RESET}\n"
 	@printf "${YELLOW}%-4sK9S_VERSION=${RESET}${MAGENTA}${K9S_VERSION}${RESET}\n"
+	@printf "${YELLOW}%-4sNEOVIM_VERSION=${RESET}${MAGENTA}${NEOVIM_VERSION}${RESET}\n"
 	@printf "${YELLOW}########################################################################################################################${RESET}\n"
 	@docker build \
 		--build-arg buildtime_AWSCLIv2_VERSION=$(AWSCLIv2_VERSION) \
@@ -99,6 +105,7 @@ build: ## Build sknief docker images from Dockerfile, defaults AWSCLIv2_VERSION=
 		--build-arg buildtime_HELM_VERSION=$(HELM_VERSION) \
 		--build-arg buildtime_TEKTON_VERSION=$(TEKTON_VERSION) \
 		--build-arg buildtime_K9S_VERSION=$(K9S_VERSION) \
+		--build-arg buildtime_NEOVIM_VERSION=$(NEOVIM_VERSION) \
 		-t $(DOCKERHUB_ACCOUNT)/sknief -f Dockerfile .
 
 .PHONY: run
@@ -114,6 +121,7 @@ run: ## Start running Terraform container, when you exit container, container wi
 	@printf "${YELLOW}%-4sTEKTON_VERSION=${RESET}${MAGENTA}${TEKTON_VERSION}${RESET}\n"
 	@printf "${YELLOW}%-4sGOLANG_VERSION=${RESET}${MAGENTA}${GOLANG_VERSION}${RESET}\n"
 	@printf "${YELLOW}%-4sK9S_VERSION=${RESET}${MAGENTA}${K9S_VERSION}${RESET}\n"
+	@printf "${YELLOW}%-4sNEOVIM_VERSION=${RESET}${MAGENTA}${NEOVIM_VERSION}${RESET}\n"
 	@printf "${YELLOW}########################################################################################################################${RESET}\n"
 	@docker run --name sknief -d  \
 		--volume "${shell PWD}/../ansible:/work/ansible" \
