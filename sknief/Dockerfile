@@ -46,6 +46,7 @@ RUN apt-get update -y  \
     software-properties-common \
     tig \
     tree \
+    tmux \
     unzip \
     vim \
     wget \
@@ -145,6 +146,18 @@ RUN curl -LO "https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/linux/amd64/kube
     && echo "" >> /root/.bashrc
 
 ##############################
+# Install Krew
+##############################
+
+ARG buildtime_KREW_VERSION='0.4.4'
+ENV KREW_VERSION=${buildtime_KREW_VERSION}
+RUN curl -fsSLO "https://github.com/kubernetes-sigs/krew/releases/download/v${KREW_VERSION}/krew-linux_amd64.tar.gz" \
+    && tar -zxvf krew-linux_amd64.tar.gz ./krew-linux_amd64 \
+    && ./krew-linux_amd64 install krew \
+    && rm -rf ./krew-linux_amd64 \
+    && echo 'export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"' >> /root/.bashrc
+
+##############################
 # Install Helm
 ##############################
 
@@ -185,7 +198,7 @@ ARG buildtime_K9S_VERSION='0.27.4'
 ENV K9S_VERSION=${buildtime_K9S_VERSION}
 
 RUN curl -LO https://github.com/derailed/k9s/releases/download/v${K9S_VERSION}/k9s_Linux_amd64.tar.gz \
-    &&  tar -zxvf k9s_Linux_amd64.tar.gz -C /usr/local/bin k9s \
+    && tar -zxvf k9s_Linux_amd64.tar.gz -C /usr/local/bin k9s \
     && chmod +x /usr/local/bin/k9s \
     && rm -rf k9s_Linux_amd64.tar.gz
 
@@ -204,7 +217,7 @@ RUN mkdir -p /work/.aws /work/terraform /work/ansible /work/tekton /root/.terraf
 RUN apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/*
 
-ENV PATH=/usr/local/go/bin:${PATH}
+ENV PATH /usr/local/go/bin:${PATH}
 
 EXPOSE 22
 VOLUME ["/work/"]

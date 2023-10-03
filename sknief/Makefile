@@ -40,6 +40,11 @@ ifndef KUBECTL_VERSION
 	override KUBECTL_VERSION=1.27.1
 endif
 
+# Set defaults KREW_VERSION, if variable have be setting, will be replaced.
+ifndef KREW_VERSION
+	override KREW_VERSION=0.4.4
+endif
+
 # Set defaults HELM_VERSION, if variable have be setting, will be replaced.
 ifndef HELM_VERSION
 	override HELM_VERSION=3.12.3
@@ -79,6 +84,7 @@ build: ## Build sknief docker images from Dockerfile, defaults AWSCLIv2_VERSION=
 	@printf "${YELLOW}%-4sTF_VERSION=${RESET}${MAGENTA}${TF_VERSION}${RESET}\n"
 	@printf "${YELLOW}%-4sANSIBLE_VERSION=${RESET}${MAGENTA}${ANSIBLE_VERSION}${RESET}\n"
 	@printf "${YELLOW}%-4sKUBECTL_VERSION=${RESET}${MAGENTA}${KUBECTL_VERSION}${RESET}\n"
+	@printf "${YELLOW}%-4sKREW_VERSION=${RESET}${MAGENTA}${KREW_VERSION}${RESET}\n"
 	@printf "${YELLOW}%-4sHELM_VERSION=${RESET}${MAGENTA}${HELM_VERSION}${RESET}\n"
 	@printf "${YELLOW}%-4sTEKTON_VERSION=${RESET}${MAGENTA}${TEKTON_VERSION}${RESET}\n"
 	@printf "${YELLOW}%-4sGOLANG_VERSION=${RESET}${MAGENTA}${GOLANG_VERSION}${RESET}\n"
@@ -89,6 +95,7 @@ build: ## Build sknief docker images from Dockerfile, defaults AWSCLIv2_VERSION=
 		--build-arg buildtime_TF_VERSION=$(TF_VERSION) \
 		--build-arg buildtime_ANSIBLE_VERSION=$(ANSIBLE_VERSION) \
 		--build-arg buildtime_KUBECTL_VERSION=$(KUBECTL_VERSION) \
+		--build-arg buildtime_KREW_VERSION=$(KREW_VERSION) \
 		--build-arg buildtime_HELM_VERSION=$(HELM_VERSION) \
 		--build-arg buildtime_TEKTON_VERSION=$(TEKTON_VERSION) \
 		--build-arg buildtime_K9S_VERSION=$(K9S_VERSION) \
@@ -102,6 +109,7 @@ run: ## Start running Terraform container, when you exit container, container wi
 	@printf "${YELLOW}%-4sTF_VERSION=${RESET}${MAGENTA}${TF_VERSION}${RESET}\n"
 	@printf "${YELLOW}%-4sANSIBLE_VERSION=${RESET}${MAGENTA}${ANSIBLE_VERSION}${RESET}\n"
 	@printf "${YELLOW}%-4sKUBECTL_VERSION=${RESET}${MAGENTA}${KUBECTL_VERSION}${RESET}\n"
+	@printf "${YELLOW}%-4sKREW_VERSION=${RESET}${MAGENTA}${KREW_VERSION}${RESET}\n"
 	@printf "${YELLOW}%-4sHELM_VERSION=${RESET}${MAGENTA}${HELM_VERSION}${RESET}\n"
 	@printf "${YELLOW}%-4sTEKTON_VERSION=${RESET}${MAGENTA}${TEKTON_VERSION}${RESET}\n"
 	@printf "${YELLOW}%-4sGOLANG_VERSION=${RESET}${MAGENTA}${GOLANG_VERSION}${RESET}\n"
