@@ -65,6 +65,11 @@ ifndef K9S_VERSION
 	override K9S_VERSION=0.27.4
 endif
 
+# Set defaults YQ_VERSION, if variable have be setting, will be replaced.
+ifndef YQ_VERSION
+	override YQ_VERSION=4.35.2
+endif
+
 # Set defaults NEOVIM_VERSION, if variable have be setting, will be replaced.
 ifndef NEOVIM_VERSION
 	override NEOVIM_VERSION=0.9.2
@@ -94,6 +99,7 @@ build: ## Build sknief docker images from Dockerfile, defaults AWSCLIv2_VERSION=
 	@printf "${YELLOW}%-4sTEKTON_VERSION=${RESET}${MAGENTA}${TEKTON_VERSION}${RESET}\n"
 	@printf "${YELLOW}%-4sGOLANG_VERSION=${RESET}${MAGENTA}${GOLANG_VERSION}${RESET}\n"
 	@printf "${YELLOW}%-4sK9S_VERSION=${RESET}${MAGENTA}${K9S_VERSION}${RESET}\n"
+	@printf "${YELLOW}%-4sYQ_VERSION=${RESET}${MAGENTA}${YQ_VERSION}${RESET}\n"
 	@printf "${YELLOW}%-4sNEOVIM_VERSION=${RESET}${MAGENTA}${NEOVIM_VERSION}${RESET}\n"
 	@printf "${YELLOW}########################################################################################################################${RESET}\n"
 	@docker build \
@@ -105,6 +111,7 @@ build: ## Build sknief docker images from Dockerfile, defaults AWSCLIv2_VERSION=
 		--build-arg buildtime_HELM_VERSION=$(HELM_VERSION) \
 		--build-arg buildtime_TEKTON_VERSION=$(TEKTON_VERSION) \
 		--build-arg buildtime_K9S_VERSION=$(K9S_VERSION) \
+		--build-arg buildtime_YQ_VERSION=$(YQ_VERSION) \
 		--build-arg buildtime_NEOVIM_VERSION=$(NEOVIM_VERSION) \
 		-t $(DOCKERHUB_ACCOUNT)/sknief -f Dockerfile .
 
@@ -121,6 +128,7 @@ run: ## Start running Terraform container, when you exit container, container wi
 	@printf "${YELLOW}%-4sTEKTON_VERSION=${RESET}${MAGENTA}${TEKTON_VERSION}${RESET}\n"
 	@printf "${YELLOW}%-4sGOLANG_VERSION=${RESET}${MAGENTA}${GOLANG_VERSION}${RESET}\n"
 	@printf "${YELLOW}%-4sK9S_VERSION=${RESET}${MAGENTA}${K9S_VERSION}${RESET}\n"
+	@printf "${YELLOW}%-4sYQ_VERSION=${RESET}${MAGENTA}${YQ_VERSION}${RESET}\n"
 	@printf "${YELLOW}%-4sNEOVIM_VERSION=${RESET}${MAGENTA}${NEOVIM_VERSION}${RESET}\n"
 	@printf "${YELLOW}########################################################################################################################${RESET}\n"
 	@docker run --name sknief -d  \

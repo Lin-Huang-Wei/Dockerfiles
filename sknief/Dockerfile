@@ -202,6 +202,17 @@ RUN curl -LO https://github.com/derailed/k9s/releases/download/v${K9S_VERSION}/k
     && rm -rf k9s_Linux_amd64.tar.gz
 
 ##############################
+# Install yq
+##############################
+
+ARG buildtime_YQ_VERSION='4.35.2'
+ENV YQ_VERSION=${buildtime_YQ_VERSION}
+
+RUN curl -LO https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_amd64  \
+    && mv yq_linux_amd64 /usr/local/bin/yq \
+    && chmod +x /usr/local/bin/yq
+
+##############################
 # Install Neovim
 ##############################
 
