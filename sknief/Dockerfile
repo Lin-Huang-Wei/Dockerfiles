@@ -1,6 +1,6 @@
 From --platform=linux/amd64 ubuntu:22.04
 
-# Update: 2023-10-04
+# Update: 2024-01-01
 LABEL maintainer="Daniel Lin"
 
 ##############################
@@ -64,7 +64,6 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y groff less
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y ca-certificates curl apt-transport-https lsb-release gnupg
 
-
 ##############################
 # Upgrade pip
 ##############################
@@ -93,17 +92,20 @@ RUN curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-${buildtime_AW
 
 ##############################
 # Install Azure Cli
+# apt-cache policy azure-cli
 ##############################
 
+ARG buildtime_AZ_VERSION='2.55.0'
+ENV AZ_VERSION=${buildtime_AZ_VERSION}
 RUN mkdir -p /etc/apt/keyrings \
     && curl -sLS https://packages.microsoft.com/keys/microsoft.asc | \
     gpg --dearmor | tee /etc/apt/keyrings/microsoft.gpg > /dev/null \
     && chmod go+r /etc/apt/keyrings/microsoft.gpg \
-    && AZ_REPO=$(lsb_release -cs) \
-    && echo "deb [arch=`dpkg --print-architecture` signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/azure-cli/ $AZ_REPO main" |  \
+    && AZ_DIST=$(lsb_release -cs) \
+    && echo "deb [arch=`dpkg --print-architecture` signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/azure-cli/ ${AZ_DIST} main" |  \
     tee /etc/apt/sources.list.d/azure-cli.list \
     && apt-get update -y  \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -y azure-cli
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y azure-cli=${AZ_VERSION}-1~${AZ_DIST}
 
 ##############################
 # Install Terraform
@@ -131,6 +133,7 @@ RUN pip install ansible-core==${buildtime_ANSIBLE_VERSION} && \
 
 ##############################
 # Install Kubectl
+# Reference: https://kubernetes.io/releases/
 ##############################
 
 ARG buildtime_KUBECTL_VERSION='1.27.1'
@@ -211,6 +214,21 @@ ENV YQ_VERSION=${buildtime_YQ_VERSION}
 RUN curl -LO https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_amd64  \
     && mv yq_linux_amd64 /usr/local/bin/yq \
     && chmod +x /usr/local/bin/yq
+
+##############################
+# Install Docker
+##############################
+
+RUN install -m 0755 -d /etc/apt/keyrings \
+    && curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg \
+    && chmod a+r /etc/apt/keyrings/docker.gpg \
+    && echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+    tee /etc/apt/sources.list.d/docker.list > /dev/null \
+    && apt-get update -y
+
+RUN apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
 ##############################
 # Install Neovim

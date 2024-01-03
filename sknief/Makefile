@@ -22,22 +22,27 @@ CONTAINER_CLEAN        := $(shell docker ps -qa -f status=exited)
 
 # Set defaults AWSCLIv2_VERSION, if variable have be setting, will be replaced.
 ifndef AWSCLIv2_VERSION
-	override AWSCLIv2_VERSION=2.13.21
+	override AWSCLIv2_VERSION=2.15.6
+endif
+
+# Set defaults AZ_VERSION, if variable have be setting, will be replaced.
+ifndef AZ_VERSION
+	override AZ_VERSION=2.55.0
 endif
 
 # Set defaults TF_VERSION, if variable have be setting, will be replaced.
 ifndef TF_VERSION
-	override TF_VERSION=1.5.7
+	override TF_VERSION=1.6.6
 endif
 
 # Set defaults ANSIBLE_VERSION, if variable have be setting, will be replaced.
 ifndef ANSIBLE_VERSION
-	override ANSIBLE_VERSION=2.14.5
+	override ANSIBLE_VERSION=2.16.2
 endif
 
 # Set defaults KUBECTL_VERSION, if variable have be setting, will be replaced.
 ifndef KUBECTL_VERSION
-	override KUBECTL_VERSION=1.27.1
+	override KUBECTL_VERSION=1.28.5
 endif
 
 # Set defaults KREW_VERSION, if variable have be setting, will be replaced.
@@ -47,12 +52,12 @@ endif
 
 # Set defaults HELM_VERSION, if variable have be setting, will be replaced.
 ifndef HELM_VERSION
-	override HELM_VERSION=3.12.3
+	override HELM_VERSION=3.13.3
 endif
 
 # Set defaults TEKTON_VERSION, if variable have be setting, will be replaced.
 ifndef TEKTON_VERSION
-	override TEKTON_VERSION=0.32.0
+	override TEKTON_VERSION=0.33.0
 endif
 
 # Set defaults GOLANG_VERSION, if variable have be setting, will be replaced.
@@ -62,17 +67,17 @@ endif
 
 # Set defaults K9S_VERSION, if variable have be setting, will be replaced.
 ifndef K9S_VERSION
-	override K9S_VERSION=0.27.4
+	override K9S_VERSION=0.30.6
 endif
 
 # Set defaults YQ_VERSION, if variable have be setting, will be replaced.
 ifndef YQ_VERSION
-	override YQ_VERSION=4.35.2
+	override YQ_VERSION=4.40.5
 endif
 
 # Set defaults NEOVIM_VERSION, if variable have be setting, will be replaced.
 ifndef NEOVIM_VERSION
-	override NEOVIM_VERSION=0.9.2
+	override NEOVIM_VERSION=0.9.5
 endif
 
 # Set DockerHub Account Name
@@ -91,6 +96,7 @@ build: ## Build sknief docker images from Dockerfile, defaults AWSCLIv2_VERSION=
 	@printf "${YELLOW}########################################################################################################################${RESET}\n"
 	@printf "${YELLOW}%-2sStart${RESET} ${CYAN}Swiss Knief${RESET} ${YELLOW}Container Images${RESET}\n"
 	@printf "${YELLOW}%-4sAWSCLIv2_VERSION=${RESET}${MAGENTA}${AWSCLIv2_VERSION}${RESET}\n"
+	@printf "${YELLOW}%-4sAZ_VERSION=${RESET}${MAGENTA}${AZ_VERSION}${RESET}\n"
 	@printf "${YELLOW}%-4sTF_VERSION=${RESET}${MAGENTA}${TF_VERSION}${RESET}\n"
 	@printf "${YELLOW}%-4sANSIBLE_VERSION=${RESET}${MAGENTA}${ANSIBLE_VERSION}${RESET}\n"
 	@printf "${YELLOW}%-4sKUBECTL_VERSION=${RESET}${MAGENTA}${KUBECTL_VERSION}${RESET}\n"
@@ -104,12 +110,14 @@ build: ## Build sknief docker images from Dockerfile, defaults AWSCLIv2_VERSION=
 	@printf "${YELLOW}########################################################################################################################${RESET}\n"
 	@docker build \
 		--build-arg buildtime_AWSCLIv2_VERSION=$(AWSCLIv2_VERSION) \
+		--build-arg buildtime_AZ_VERSION=$(AZ_VERSION) \
 		--build-arg buildtime_TF_VERSION=$(TF_VERSION) \
 		--build-arg buildtime_ANSIBLE_VERSION=$(ANSIBLE_VERSION) \
 		--build-arg buildtime_KUBECTL_VERSION=$(KUBECTL_VERSION) \
 		--build-arg buildtime_KREW_VERSION=$(KREW_VERSION) \
 		--build-arg buildtime_HELM_VERSION=$(HELM_VERSION) \
 		--build-arg buildtime_TEKTON_VERSION=$(TEKTON_VERSION) \
+		--build-arg buildtime_GOLANG_VERSION=$(GOLANG_VERSION) \
 		--build-arg buildtime_K9S_VERSION=$(K9S_VERSION) \
 		--build-arg buildtime_YQ_VERSION=$(YQ_VERSION) \
 		--build-arg buildtime_NEOVIM_VERSION=$(NEOVIM_VERSION) \
@@ -120,6 +128,7 @@ run: ## Start running Terraform container, when you exit container, container wi
 	@printf "${YELLOW}########################################################################################################################${RESET}\n"
 	@printf "${YELLOW}%-2sStart${RESET} ${CYAN}Swiss Knief${RESET} ${YELLOW}Container Images${RESET}\n"
 	@printf "${YELLOW}%-4sAWSCLIv2_VERSION=${RESET}${MAGENTA}${AWSCLIv2_VERSION}${RESET}\n"
+	@printf "${YELLOW}%-4sAZ_VERSION=${RESET}${MAGENTA}${AZ_VERSION}${RESET}\n"
 	@printf "${YELLOW}%-4sTF_VERSION=${RESET}${MAGENTA}${TF_VERSION}${RESET}\n"
 	@printf "${YELLOW}%-4sANSIBLE_VERSION=${RESET}${MAGENTA}${ANSIBLE_VERSION}${RESET}\n"
 	@printf "${YELLOW}%-4sKUBECTL_VERSION=${RESET}${MAGENTA}${KUBECTL_VERSION}${RESET}\n"
@@ -134,6 +143,8 @@ run: ## Start running Terraform container, when you exit container, container wi
 	@docker run --name sknief -d  \
 		--volume "${shell PWD}/../ansible:/work/ansible" \
 		--volume "${shell PWD}/../terraform:/work/terraform" \
+		--volume "${shell PWD}/../../devops/tekton-project:/work/tekton/" \
+		--volume "/Users/daniel/.docker/run/docker.sock:/var/run/docker.sock" \
 		-it $(DOCKERHUB_ACCOUNT)/sknief bash
 
 .PHONY: clean
