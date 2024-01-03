@@ -1,5 +1,5 @@
 # Maintainer: Daniel Lin
-# Update: 2023-10-04
+# Update: 2024-01-04
 
 SHELL := /bin/bash
 
@@ -140,12 +140,11 @@ run: ## Start running Terraform container, when you exit container, container wi
 	@printf "${YELLOW}%-4sYQ_VERSION=${RESET}${MAGENTA}${YQ_VERSION}${RESET}\n"
 	@printf "${YELLOW}%-4sNEOVIM_VERSION=${RESET}${MAGENTA}${NEOVIM_VERSION}${RESET}\n"
 	@printf "${YELLOW}########################################################################################################################${RESET}\n"
-	@docker run --name sknief -d  \
+	@docker run --name sknief \
 		--volume "${shell PWD}/../ansible:/work/ansible" \
 		--volume "${shell PWD}/../terraform:/work/terraform" \
 		--volume "${shell PWD}/../../devops/tekton-project:/work/tekton/" \
-		--volume "/Users/daniel/.docker/run/docker.sock:/var/run/docker.sock" \
-		-it $(DOCKERHUB_ACCOUNT)/sknief bash
+		--privileged -it $(DOCKERHUB_ACCOUNT)/sknief bash
 
 .PHONY: clean
 clean: ## Garbage disposal
