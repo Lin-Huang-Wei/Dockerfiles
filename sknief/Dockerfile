@@ -35,6 +35,7 @@ RUN apt-get update -y  \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     bash \
     bash-completion \
+    build-essential \
     curl \
     ca-certificates  \
     dnsutils \
@@ -274,7 +275,7 @@ RUN set -eux; \
 	docker --version; \
 	docker buildx version; \
   \
-  test ! -d /opt/bash-utils  &&  echo 'mkdir -p /opt/bash-utils'
+  test ! -d /opt/bash-utils && echo 'mkdir -p /opt/bash-utils'
 
 COPY modprobe start-docker.sh entrypoint.sh /usr/local/bin/
 COPY supervisor/ /etc/supervisor/conf.d/
@@ -295,6 +296,19 @@ RUN curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOS
 RUN ln -s /usr/local/bin/docker-compose /usr/local/lib/docker/cli-plugins/docker-compose
 
 ##############################
+# Install gum
+# Reference: https://github.com/charmbracelet/gum
+##############################
+
+ARG buildtime_GUM_VERSION='0.13.0'
+ENV GUM_VERSION=${buildtime_GUM_VERSION}
+
+RUN curl -LO https://github.com/charmbracelet/gum/releases/download/v${GUM_VERSION}/gum_${GUM_VERSION}_Linux_x86_64.tar.gz \
+    && tar -zxvf gum_${GUM_VERSION}_Linux_x86_64.tar.gz -C /usr/local/bin gum \
+    && chmod +x /usr/local/bin/gum \
+    && rm -rf gum_${GUM_VERSION}_Linux_x86_64.tar.gz
+
+##############################
 # Create Work Directory
 ##############################
 
@@ -310,6 +324,7 @@ RUN apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/*
 
 ENV PATH /usr/local/go/bin:${PATH}
+ENV TERM=xterm-256color
 
 EXPOSE 22
 VOLUME ["/work/"]

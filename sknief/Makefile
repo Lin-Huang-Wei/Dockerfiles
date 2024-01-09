@@ -80,6 +80,11 @@ ifndef NEOVIM_VERSION
 	override NEOVIM_VERSION=0.9.5
 endif
 
+# Set defaults NEOVIM_VERSION, if variable have be setting, will be replaced.
+ifndef GUM_VERSION
+	override GUM_VERSION=0.13.0
+endif
+
 # Set DockerHub Account Name
 ifndef DOCKERHUB_ACCOUNT
 	override DOCKERHUB_ACCOUNT=daniel
@@ -107,6 +112,7 @@ build: ## Build sknief docker images from Dockerfile, defaults AWSCLIv2_VERSION=
 	@printf "${YELLOW}%-4sK9S_VERSION=${RESET}${MAGENTA}${K9S_VERSION}${RESET}\n"
 	@printf "${YELLOW}%-4sYQ_VERSION=${RESET}${MAGENTA}${YQ_VERSION}${RESET}\n"
 	@printf "${YELLOW}%-4sNEOVIM_VERSION=${RESET}${MAGENTA}${NEOVIM_VERSION}${RESET}\n"
+	@printf "${YELLOW}%-4sGUM_VERSION=${RESET}${MAGENTA}${GUM_VERSION}${RESET}\n"
 	@printf "${YELLOW}########################################################################################################################${RESET}\n"
 	@docker build \
 		--build-arg buildtime_AWSCLIv2_VERSION=$(AWSCLIv2_VERSION) \
@@ -121,6 +127,7 @@ build: ## Build sknief docker images from Dockerfile, defaults AWSCLIv2_VERSION=
 		--build-arg buildtime_K9S_VERSION=$(K9S_VERSION) \
 		--build-arg buildtime_YQ_VERSION=$(YQ_VERSION) \
 		--build-arg buildtime_NEOVIM_VERSION=$(NEOVIM_VERSION) \
+		--build-arg buildtime_GUM_VERSION=$(GUM_VERSION) \
 		-t $(DOCKERHUB_ACCOUNT)/sknief -f Dockerfile .
 
 .PHONY: run
@@ -139,6 +146,7 @@ run: ## Start running Terraform container, when you exit container, container wi
 	@printf "${YELLOW}%-4sK9S_VERSION=${RESET}${MAGENTA}${K9S_VERSION}${RESET}\n"
 	@printf "${YELLOW}%-4sYQ_VERSION=${RESET}${MAGENTA}${YQ_VERSION}${RESET}\n"
 	@printf "${YELLOW}%-4sNEOVIM_VERSION=${RESET}${MAGENTA}${NEOVIM_VERSION}${RESET}\n"
+	@printf "${YELLOW}%-4sGUM_VERSION=${RESET}${MAGENTA}${GUM_VERSION}${RESET}\n"
 	@printf "${YELLOW}########################################################################################################################${RESET}\n"
 	@docker run --name sknief \
 		--volume "${shell PWD}/../ansible:/work/ansible" \
