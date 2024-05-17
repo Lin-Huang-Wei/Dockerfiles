@@ -1,6 +1,6 @@
 From --platform=linux/amd64 ubuntu:22.04
 
-# Update: 2024-01-01
+# Update: 2024-05-17
 LABEL maintainer="Daniel Lin"
 
 ##############################
@@ -147,7 +147,7 @@ RUN curl -LO "https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/linux/amd64/kube
     && chmod +x /usr/local/bin/kubectl \
     && echo "# Kubectl auto-completion and aliases" >> /root/.bashrc \
     && echo "source <(kubectl completion bash)" >> /root/.bashrc \
-    && echo "alias k=kubectl" >> /root/.bashrc >> /root/.bashrc \
+    && echo "alias k=kubectl" >> /root/.bashrc \
     && echo "complete -F __start_kubectl k" >> /root/.bashrc \
     && echo ". /usr/share/bash-completion/bash_completion" >> /root/.bashrc \
     && echo "" >> /root/.bashrc
@@ -182,10 +182,10 @@ RUN curl -LO "https://get.helm.sh/helm-v${HELM_VERSION}-linux-amd64.tar.gz" \
 
 ARG buildtime_TEKTON_VERSION='0.30.1'
 ENV TEKTON_VERSION=${buildtime_TEKTON_VERSION}
-RUN curl -LO https://github.com/tektoncd/cli/releases/download/v${buildtime_TEKTON_VERSION}/tkn_${buildtime_TEKTON_VERSION}_Linux_x86_64.tar.gz \
-    && tar -zxvf tkn_${buildtime_TEKTON_VERSION}_Linux_x86_64.tar.gz -C /usr/local/bin/ tkn \
+RUN curl -LO https://github.com/tektoncd/cli/releases/download/v${TEKTON_VERSION}/tkn_${TEKTON_VERSION}_Linux_x86_64.tar.gz \
+    && tar -zxvf tkn_${TEKTON_VERSION}_Linux_x86_64.tar.gz -C /usr/local/bin/ tkn \
     && chmod +x /usr/local/bin/tkn \
-    && rm -rf /tkn_${buildtime_TEKTON_VERSION}_Linux_x86_64.tar.gz
+    && rm -rf /tkn_${TEKTON_VERSION}_Linux_x86_64.tar.gz
 
 ##############################
 # Install Go
