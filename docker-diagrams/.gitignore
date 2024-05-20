@@ -1,0 +1,10 @@
+# MacOS
+.DS_Store
+
+# Sensitive content
+.ssh
+
+# Digrame as Code
+*.py
+*.png
+
