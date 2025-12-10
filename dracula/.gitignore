@@ -1,0 +1,13 @@
+# MacOS
+.DS_Store
+
+# Sensitive content
+.ssh
+
+# Directories
+./ansible
+./terraform
+./tekton
+
+# GCP credentials
+./config
