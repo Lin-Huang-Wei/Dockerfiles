@@ -1,5 +1,5 @@
 # Maintainer: Daniel Lin
-# Update: 2024-05-16
+# Update: 2025-08-20
 
 SHELL := /bin/bash
 
@@ -25,7 +25,7 @@ CONTAINER_NAME         := diagrams
 
 # Set DockerHub Account Name
 ifndef DOCKERHUB_ACCOUNT
-	override DOCKERHUB_ACCOUNT=daniel
+	override DOCKERHUB_ACCOUNT=demo
 endif
 
 ##@ Docker
@@ -35,7 +35,7 @@ show: ## Show current running container
 	@docker container ls
 
 .PHONY: build
-build: ## Build mosquito docker images from Dockerfile
+build: ## Build diagrams docker images from Dockerfile
 	@printf "${YELLOW}########################################################################################################################${RESET}\n"
 	@printf "${YELLOW}%-2sStart${RESET} ${CYAN}Diagrams${RESET} ${YELLOW}Container Images${RESET}\n"
 	@printf "${YELLOW}########################################################################################################################${RESET}\n"

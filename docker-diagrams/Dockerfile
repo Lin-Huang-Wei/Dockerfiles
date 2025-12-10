@@ -1,13 +1,14 @@
 From python:3.9.19-slim-bookworm
 
-# Update: 2024-05-16
+# Update: 2025-08-25
 LABEL maintainer="Daniel Lin"
 
 COPY requirements.txt ./
 
 RUN apt-get update -y  \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    graphviz
+    graphviz \
+    fonts-noto-cjk
 
 RUN pip install --no-cache-dir -r requirements.txt
 
@@ -23,6 +24,7 @@ RUN apt-get clean \
 ##############################
 
 ENV TERM=xterm-256color
+ENV FONT="Noto Sans CJK TC"
 
 RUN mkdir -p /diagrams/scripts/
 
