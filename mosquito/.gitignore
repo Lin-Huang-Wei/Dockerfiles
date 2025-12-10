@@ -4,7 +4,14 @@
 # Sensitive content
 .ssh
 
+# Directories
+./ansible
+./terraform
+./tekton
+
+# GCP credentials
+./config
+
 # Digrame as Code
 *.py
 *.png
-
