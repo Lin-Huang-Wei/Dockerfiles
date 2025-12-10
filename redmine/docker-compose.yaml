@@ -1,0 +1,67 @@
+version: '3.7'
+
+services:
+  redmine:
+    image: redmine:6.0.7-bookworm
+    container_name: redmine
+    restart: always
+    depends_on:
+      redmine_db:
+        condition: service_healthy
+        restart: true
+    #ports:
+    # - 3000:3000
+    environment:
+      REDMINE_DB_POSTGRES: redmine_db
+      REDMINE_DB_USERNAME: redmine
+      REDMINE_DB_PASSWORD: 'PASSWD'
+      REDMINE_DB_ENCODING: utf8
+      REDMINE_SECRET_KEY_BASE: supersecretkey
+    volumes:
+      - "./redmine/files:/usr/src/redmine/files"
+      - "./redmine/plugins:/usr/src/redmine/plugins"
+      - "./redmine/themes:/usr/src/redmine/public/themes"
+      - "./redmine/config/configuration.yml:/usr/src/redmine/config/configuration.yml"
+    networks:
+      - redmine_network
+
+  redmine_db:
+    image: postgres:17.2-bookworm
+    container_name: redmine-db
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_DB: redmine
+      POSTGRES_USER: redmine
+      POSTGRES_PASSWORD: 'PASSWD'
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+    networks:
+      - redmine_network
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    restart: always
+    depends_on:
+      redmine:
+        condition: service_started
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - "./nginx/etc/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf:ro"
+      - "./nginx/ssl/server.pem:/etc/nginx/ssl/server.pem:ro"
+      - "./nginx/ssl/server-private.key:/etc/nginx/ssl/server-private.key:ro"
+    networks:
+      - redmine_network
+
+networks:
+  redmine_network:
+    driver: bridge
+
