@@ -1,2 +1,2 @@
-django==4.2.4
-mssql-django==1.3
+django==4.2.27
+mssql-django==1.4.1
